@@ -1,4 +1,4 @@
-CSRCS2 = main.c devices.c devtty.c devfd.c bankzx128.c
+CSRCS2 = main.c devices.c devtty.c devfd.c
 
 ASRCS = crt0.s zx128.s zxvideo.s trdos.s
 ASRCS += tricks.s commonmem.s

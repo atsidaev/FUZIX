@@ -21,7 +21,7 @@
    Our choise should be CONFIG_BANK_FIXED, but we are. 
    using custom implementation of it */
 
-#undef CONFIG_BANK_FIXED
+#define CONFIG_BANK_FIXED
 
 /* 6 16K banks, 1 is for kernel needs */
 #define MAX_MAPS	5
