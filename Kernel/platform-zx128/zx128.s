@@ -25,6 +25,7 @@
         .globl map_restore
 
         .globl _kernel_flag
+	.globl current_map
 
         ; exported debugging tools
         .globl _trap_monitor
@@ -105,32 +106,24 @@ _program_vectors:
 
         ; bank switching procedure. On entrance:
         ;  A - bank number to set
+        ;  stack: AF, <ret addr>
 switch_bank:
-        di                  ; TODO: we need to call di() instead
-        ld (current_map), a
-        ld a, b
-        ld (place_for_b), a
-        ld a, c
-        ld (place_for_c), a
+        push bc
         ld bc, #0x7ffd
-        ld a, (current_map)
+        ld (current_map), a
         out (c), a
-        ld a, (place_for_b)
-        ld b, a
-        ld a, (place_for_c)
-        ld c, a
-        ld a, (place_for_a)
-        ei
+        pop bc
+        pop af
         ret
 
 map_kernel:
-        ld (place_for_a), a
+        push af
 map_kernel_nosavea:          ; to avoid double reg A saving
         xor a
         jr switch_bank
 
 map_process:
-        ld (place_for_a), a
+        push af
         ld a, h
         or l
         jr z, map_kernel_nosavea
@@ -138,19 +131,19 @@ map_process:
         jr switch_bank
 
 map_process_always:
-        ld (place_for_a), a
+        push af
         ld a, (U_DATA__U_PAGE)
         jr switch_bank
 
 map_save:
-        ld (place_for_a), a
+        push af
         ld a, (current_map)
         ld (map_store), a
-        ld a, (place_for_a)
+        pop af
         ret
 
 map_restore:
-        ld (place_for_a), a
+        push af
         ld a, (map_store)
         jr switch_bank
 
@@ -158,13 +151,6 @@ current_map:                ; place to store current page number. Is needed
         .db 0               ; because we have no ability to read 7ffd port
                             ; to detect what page is mapped currently 
 map_store:
-        .db 0
-
-place_for_a:                ; When change mapping we can not use stack since it is located at the end of banked area.
-        .db 0               ; Here we store A when needed
-place_for_b:                ; And BC - here
-        .db 0
-place_for_c:
         .db 0
 
 ; outchar: TODO: add something here (char in A). Current port #15 is emulator stub
