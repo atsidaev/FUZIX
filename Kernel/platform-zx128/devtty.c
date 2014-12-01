@@ -36,7 +36,7 @@ static uint8_t keyboard_ss[8][5] = {
 	{ '_', ')', '(', '\'', '&' },
 	{ '!', '@', '#', '$', '%' },
 	{  0 ,  0 ,  0 , '<', '>' },
-	{  0 ,  0 ,  0 ,  0 ,  0  },
+	{  0 ,  0 ,  0 , '|',  0  },
 	{  0,  ':',  0 , '?', '/' } /* 'x' key should actually contain British pound sign here if "big" font is used */
 };
 
