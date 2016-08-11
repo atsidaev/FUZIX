@@ -36,11 +36,14 @@ static int betadisk_transfer(bool is_read, uint8_t rawflag)
 	/* Read only for now */
 	if (!is_read)
 		return 1;
-
+	di();
 	betadisk_seek_internal(block>>4);
+	ei();
 	block &= 15;
+	di();
 	betadisk_read_internal(block, udata.u_buf->bf_data);
 	betadisk_read_internal(block+1, udata.u_buf->bf_data+256);
+	ei();
 	return 1;
 }
 
