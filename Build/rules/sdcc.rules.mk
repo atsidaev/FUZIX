@@ -49,9 +49,11 @@ PROGLOAD = $(shell \
 
 sdcc.cflags = \
 	-m$(ARCH) \
-	--std-c99 \
+	--std-sdcc99 \
 	--opt-code-speed --peep-asm \
 	-Ddouble=float
+
+
 
 # Used when linking user mode executables.
 
@@ -67,6 +69,9 @@ target-exe.ldflags += \
 target-exe.extradeps ?=
 target-exe.extradeps += $(libc.result)
 
+# Used for kernel compilation
+
+kernel.asflags = -plosff
 
 # Fuzix' libc conflicts with the standard sdcc compiler library, which is a
 # shame because there's bits we want in it. So we steal those bits into our
@@ -188,6 +193,38 @@ $$($1.result): $$($1.objs) $(crt0.result) $(binman.result) \
 		-o $$(@:.exe=.ihx) $(crt0.result) $$($1.objs)
 	$$(hide) makebin -p -s 65535 $$(@:.exe=.ihx) $$(@:.exe=.bin)
 	$$(hide) $(binman.result) $(PROGLOAD) $$(@:.exe=.bin) $$(@:.exe=.map) $$@ > /dev/null
+
+endif
+
+# Builds a kernel
+
+#sdcc 
+
+ifneq ($$(filter %.ihx, $$($1.result)),)
+
+$1.libz80 ?= $(shell Kernel/tools/findsdcc z80)
+$1.ldflags = -mwxuy \
+	     -r \
+	     -i $$($1.result) \
+	     -b _COMMONDATA=0x4000 \
+	     -b _CODE=0xC000 \
+	     -b _CODE2=0xC000 \
+	     -b _CODE3=0xDB00 \
+	     -b _DISCARD=0x8000 \
+	     -l z80 \
+	     $$($1.objs)
+
+$$($1.result): $$($1.objs) $$($1.lnk) \
+		$$($$($1.class).extradeps) $$($1.extradeps)
+	@echo KERNEL $$@
+	@mkdir -p $$(dir $$@)
+	#$$(hide) 
+#	$(SDCC) \
+#		$$(sdcc.cflags) $$($$($1.class).cflags) $$($1.cflags) \
+#		$$(sdcc.includes) $$($$($1.class).includes) $$($1.includes) \
+#		$$(sdcc.defines) $$($$($1.class).defines) $$($1.defines) \
+#		-c -o $$@ $$<
+	Kernel/tools/bankld/sdldz80 -n -k $$($1.libz80) $$(sdcc.ldflags) $$($1.ldflags)
 
 endif
 
