@@ -39,9 +39,7 @@ kernel.cflags += \
 	--max-allocs-per-node 30000 \
 	--Werror \
 	--stack-auto \
-	--constseg CONST \
-	--external-banker \
-	--codeseg CODE3
+	--external-banker
 
 kernel.ldflags += \
 	-b _COMMONDATA=0x4000 \
@@ -53,7 +51,7 @@ kernel.ldflags += \
 # CODE1
 segment1.name = CODE
 segment1.includes = $(kernel.includes)
-segment1.cflags = $(kernel.cflags) --codeseg CODE
+segment1.cflags = $(kernel.cflags) --codeseg CODE --constseg CONST
 segment1.asflags = $(kernel.asflags)
 segment1.srcs = \
 	$(kernelversion.result) \
@@ -66,7 +64,7 @@ segment1.srcs = \
 # CODE2
 segment2.name = CODE2
 segment2.includes = $(kernel.includes)
-segment2.cflags = $(kernel.cflags) --codeseg CODE2
+segment2.cflags = $(kernel.cflags) --codeseg CODE2 --constseg CONST
 segment2.asflags = $(kernel.asflags)
 segment2.srcs = \
 	../process.c \
@@ -77,7 +75,7 @@ segment2.srcs = \
 # CODE3
 segment3.name = CODE3
 segment3.includes = $(kernel.includes)
-segment3.cflags = $(kernel.cflags) --codeseg CODE3
+segment3.cflags = $(kernel.cflags) --codeseg CODE3 --constseg CONST
 segment3.asflags = $(kernel.asflags)
 segment3.srcs = \
 	commonmem.s \
@@ -128,5 +126,17 @@ kernel.extradeps = \
 	$(segment3.result) \
 	$(segment4.result)
 	
-kernel.result = $(TOP)/kernel-$(PLATFORM).ihx
+kernel.result = $(OBJ)/$(PLATFORM)/Kernel/kernel-$(PLATFORM).ihx
 $(call build, kernel, kernel-ihx)
+
+SNA=$(kernel.result:.ihx=.sna)
+HOGS=$(kernel.result:.ihx=.hogs)
+
+kernel.sna: $(SNA)
+$(SNA): $(kernel.result)
+	$(TOP)/Kernel/tools/memhogs < $(kernel.result:.ihx=.map) |sort -nr > $(HOGS)
+	head -5 $(HOGS)
+	(cd $(OBJ)/$(PLATFORM)/Kernel; $(abspath $(TOP)/Kernel/tools/bihx $(kernel.result)))
+	-(cd $(OBJ)/$(PLATFORM)/Kernel; ln -s kernel-$(PLATFORM).map fuzix.map)
+	(cd $(OBJ)/$(PLATFORM)/Kernel; $(abspath $(TOP)/Kernel/tools/binprep $(kernel.result)))
+	(cd $(OBJ)/$(PLATFORM)/Kernel; $(abspath $(TOP)/Kernel/tools/bin2sna $(kernel.result:.ihx=.sna)))

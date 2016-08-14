@@ -229,7 +229,7 @@ ifneq ($$(filter %.rel, $$($1.result)),)
 
 $$($1.result): $$($1.objs) \
 		$$($$($1.class).extradeps) $$($1.extradeps)
-	@echo LINK $$($1.name)
+	@echo LINK $$@
 	@cat $$^ > $$@
 	@cat $$(^:.rel=.lst) > $$(@:.rel=.lst)
 endif
