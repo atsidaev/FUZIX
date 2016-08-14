@@ -1,11 +1,24 @@
 #!/bin/sh
-tools/bihx fuzix.ihx
-if grep -q _STUBS fuzix.map ; then
-	BASE=`grep "s__STUBS " fuzix.map |cut -b10-13`
-	LEN=`grep "l__STUBS " fuzix.map |cut -b10-13`
-	tools/binmunge $BASE-$LEN
+
+# get the absolute path to script
+SCRIPT=$(readlink -f "$0")
+DIR=$(dirname "$SCRIPT")
+
+# use fuzix.ihx/fuzix.map if no name specified
+if [ -z "$1" ]
+then
+	KERNEL=fuzix
 else
-	tools/analysemap <fuzix.map
-	makebin -s 65536 -p common.ihx >fuzix.tmp
-	tools/binman fuzix.tmp fuzix.map fuzix.bin
+	KERNEL=$(basename $1 .ihx)
+fi
+
+$DIR/bihx kernel-zx128.ihx
+if grep -q _STUBS kernel-zx128.map ; then
+	BASE=`grep "s__STUBS " $KERNEL.map |cut -b10-13`
+	LEN=`grep "l__STUBS " $KERNEL.map |cut -b10-13`
+	$DIR/binmunge $BASE-$LEN
+else
+	$DIR/analysemap <$KERNEL.map
+	makebin -s 65536 -p common.ihx >$KERNEL.tmp
+	$DIR/binman $KERNEL.tmp $KERNEL.map $KERNEL.bin
 fi
