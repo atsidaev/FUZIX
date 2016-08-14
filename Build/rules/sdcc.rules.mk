@@ -6,7 +6,6 @@ SDAS = sdasz80
 SDAR = sdar
 PLATFORM_RULES = sdcc.rules
 
-
 # Utility functions to extract a named section from the data returned by
 # sdcc --print-search-dirs; this is chunked into sections, each starting
 # with a keyword followed by a colon, everything separated by whitespace.
@@ -50,7 +49,7 @@ PROGLOAD = $(shell \
 sdcc.cflags = \
 	-m$(ARCH) \
 	--std-sdcc99 \
-	--opt-code-speed --peep-asm \
+	--opt-code-size --peep-asm \
 	-Ddouble=float
 
 
@@ -202,20 +201,16 @@ endif
 
 ifneq ($$(filter %.ihx, $$($1.result)),)
 
-$1.libz80 ?= $(shell Kernel/tools/findsdcc z80)
+$1.libz80 ?= $(shell Kernel/tools/findsdcc $(ARCH))
 $1.ldflags = -mwxuy \
 	     -r \
 	     -i $$($1.result) \
-	     -b _COMMONDATA=0x4000 \
-	     -b _CODE=0xC000 \
-	     -b _CODE2=0xC000 \
-	     -b _CODE3=0xDB00 \
-	     -b _DISCARD=0x8000 \
-	     -l z80 \
+	     -l $(ARCH) \
 	     $$($1.objs)
 
-$$($1.result): $$($1.objs) $$($1.lnk) \
+$$($1.result): $$($1.objs) \
 		$$($$($1.class).extradeps) $$($1.extradeps)
+	echo $$^
 	@echo KERNEL $$@
 	@mkdir -p $$(dir $$@)
 	#$$(hide) 
@@ -224,8 +219,19 @@ $$($1.result): $$($1.objs) $$($1.lnk) \
 #		$$(sdcc.includes) $$($$($1.class).includes) $$($1.includes) \
 #		$$(sdcc.defines) $$($$($1.class).defines) $$($1.defines) \
 #		-c -o $$@ $$<
-	Kernel/tools/bankld/sdldz80 -n -k $$($1.libz80) $$(sdcc.ldflags) $$($1.ldflags)
+	Kernel/tools/bankld/sdldz80 -n -k $$($1.libz80) $$(sdcc.ldflags) $$($1.ldflags) $$^
 
+endif
+
+# concatenating all incoming .rel files together in a single file
+
+ifneq ($$(filter %.rel, $$($1.result)),)
+
+$$($1.result): $$($1.objs) \
+		$$($$($1.class).extradeps) $$($1.extradeps)
+	@echo LINK $$($1.name)
+	@cat $$^ > $$@
+	@cat $$(^:.rel=.lst) > $$(@:.rel=.lst)
 endif
 
 endef
