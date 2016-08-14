@@ -79,9 +79,7 @@ segment3.cflags = $(kernel.cflags) --codeseg CODE3 --constseg CONST
 segment3.asflags = $(kernel.asflags)
 segment3.srcs = \
 	commonmem.s \
-	crt0.s \
 	../dev/devide.c \
-	../dev/blkdev.c \
 	../dev/mbr.c \
 	../devsys.c \
 	../lowlevel-z80-banked.s \
@@ -103,8 +101,8 @@ segment3.srcs = \
 	tricks.s \
 	microdrive.s \
 	betadisk.c \
-	betadisk_internal.s
-
+	betadisk_internal.s \
+	../dev/blkdev.c
 
 # DISCARD
 segment4.name = DISCARD
@@ -119,6 +117,9 @@ $(call build, segment1, kernel-rel)
 $(call build, segment2, kernel-rel)
 $(call build, segment3, kernel-rel)
 $(call build, segment4, kernel-rel)
+
+kernel.srcs = \
+	crt0.s
 
 kernel.extradeps = \
 	$(segment1.result) \
