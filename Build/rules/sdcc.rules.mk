@@ -202,7 +202,8 @@ endif
 ifneq ($$(filter %.ihx, $$($1.result)),)
 
 $1.libz80 ?= $(shell Kernel/tools/findsdcc $(ARCH))
-$1.ldflags = -mwxuy \
+$1.ldflags ?=
+$1.ldflags += -mwxuy \
 	     -r \
 	     -i $$($1.result) \
 	     -l $(ARCH) \
