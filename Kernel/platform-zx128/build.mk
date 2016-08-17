@@ -48,11 +48,14 @@ kernel.ldflags += \
 	-b _CODE3=0xDB00 \
 	-b _DISCARD=0x8000
 
+# $1 is segment variable, $2 is segment name, $3 is section for CONST data (default value is CONST)
+define_segment = \
+	$(eval $1.name = $2) \
+	$(eval $1.includes = $(kernel.includes)) \
+	$(eval $1.cflags = $(kernel.cflags) --codeseg $2 --constseg $3) \
+	$(eval $1.asflags = $(kernel.asflags))
+
 # CODE1
-segment1.name = CODE
-segment1.includes = $(kernel.includes)
-segment1.cflags = $(kernel.cflags) --codeseg CODE --constseg CONST
-segment1.asflags = $(kernel.asflags)
 segment1.srcs = \
 	$(kernelversion.result) \
 	../filesys.c \
@@ -62,10 +65,6 @@ segment1.srcs = \
 	../inode.c
 
 # CODE2
-segment2.name = CODE2
-segment2.includes = $(kernel.includes)
-segment2.cflags = $(kernel.cflags) --codeseg CODE2 --constseg CONST
-segment2.asflags = $(kernel.asflags)
 segment2.srcs = \
 	../process.c \
 	../simple.c \
@@ -73,10 +72,6 @@ segment2.srcs = \
 	$(syscallmap.srcs)
 
 # CODE3
-segment3.name = CODE3
-segment3.includes = $(kernel.includes)
-segment3.cflags = $(kernel.cflags) --codeseg CODE3 --constseg CONST
-segment3.asflags = $(kernel.asflags)
 segment3.srcs = \
 	commonmem.s \
 	../dev/devide.c \
@@ -105,13 +100,14 @@ segment3.srcs = \
 	../dev/blkdev.c
 
 # DISCARD
-segment4.name = DISCARD
-segment4.includes = $(kernel.includes)
-segment4.cflags = $(kernel.cflags) --codeseg DISCARD --constseg DISCARD
-segment4.asflags = $(kernel.asflags)
 segment4.srcs = \
 	../start.c \
 	../dev/devide_discard.c
+
+$(call define_segment, segment1, CODE, CONST)
+$(call define_segment, segment2, CODE2, CONST)
+$(call define_segment, segment3, CODE3, CONST)
+$(call define_segment, segment4, DISCARD, DISCARD)
 
 $(call build, segment1, kernel-rel)
 $(call build, segment2, kernel-rel)
