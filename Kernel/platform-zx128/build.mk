@@ -49,11 +49,12 @@ kernel.ldflags += \
 	-b _DISCARD=0x8000
 
 # $1 is segment variable, $2 is segment name, $3 is section for CONST data (default value is CONST)
-define_segment = \
+build_segment = \
 	$(eval $1.name = $2) \
 	$(eval $1.includes = $(kernel.includes)) \
 	$(eval $1.cflags = $(kernel.cflags) --codeseg $2 --constseg $3) \
-	$(eval $1.asflags = $(kernel.asflags))
+	$(eval $1.asflags = $(kernel.asflags)) \
+	$(eval $(call build, $1, kernel-rel))
 
 # CODE1
 segment1.srcs = \
@@ -104,16 +105,6 @@ segment4.srcs = \
 	../start.c \
 	../dev/devide_discard.c
 
-$(call define_segment, segment1, CODE, CONST)
-$(call define_segment, segment2, CODE2, CONST)
-$(call define_segment, segment3, CODE3, CONST)
-$(call define_segment, segment4, DISCARD, DISCARD)
-
-$(call build, segment1, kernel-rel)
-$(call build, segment2, kernel-rel)
-$(call build, segment3, kernel-rel)
-$(call build, segment4, kernel-rel)
-
 kernel.srcs = \
 	crt0.s
 
@@ -122,8 +113,13 @@ kernel.extradeps = \
 	$(segment2.result) \
 	$(segment3.result) \
 	$(segment4.result)
-	
+
 kernel.result = $(OBJ)/$(PLATFORM)/Kernel/kernel-$(PLATFORM).ihx
+
+$(call build_segment, segment1, CODE, CONST)
+$(call build_segment, segment2, CODE2, CONST)
+$(call build_segment, segment3, CODE3, CONST)
+$(call build_segment, segment4, DISCARD, DISCARD)
 $(call build, kernel, kernel-ihx)
 
 SNA=$(kernel.result:.ihx=.sna)
