@@ -55,6 +55,8 @@
         .globl nmi_handler
         .globl interrupt_handler
 
+	.globl _vtink
+
 	.include "kernel.def"
 
         ; startup code
@@ -91,6 +93,57 @@ init1:
 
 init2:
 	di
+
+        ; making sure that we have Basic48 as ROM
+        ld      b, #0x21 ; 0x21af is the
+        ld      c, #0xaf ;   MemConfig port of TS-Conf
+        ld      l,#0xC0 ;  Enable ROM instead of RAM in #0000      
+        out     (c),l
+        ld      b,#0x10 ; #_tsPage0 port (0x10af)
+        ld      l,#0x03  ; ROM Basic-48
+        out     (c),l
+	
+	; map basic-48
+	ld bc, #0x7ffd
+	ld a, #0x18
+	out (c), a
+
+        ; setting Font in page 0x33
+        ld      b,#0x12 ; #_tsPage1 port (0x12af)
+        ld      c,#0xaf
+        ld      l, #33
+        out     (c), l
+        ld hl, #0x3C00  ; font data in ROM
+        ld de, #0x8000
+        ld bc, #256 * #4
+        ldir            ; copy font data to page 33
+        ld      b,#0x12 ; #_tsPage1 port (0x12af)
+        ld      c,#0xaf
+        ld      l, #2   ; put RAM2 back
+        out     (c), l
+        
+;        ld      bc,#0x10af
+;	ld l, #32
+;	out (c), l      ; set ram to 0000
+;        ld      b, #0x21 ; 0x21af is the
+;        ld      c, #0xaf ;   MemConfig port of TS-Conf
+;        ld      l,#0xCE ;  Enable RAM instead of ROM in #0000      
+;        out     (c),l
+;        ld      b,#0x10 ; #_tsPage1 port (0x11af)
+;        ld      c,#0xaf
+;        ld      l, #32
+;        out     (c), l
+
+        ; text mode
+        ld      bc,#0x01af ; #_tsVPage
+        ld      a,#32
+        out     (c),a
+        dec     b          ; #_tsVConfig
+        ld      a,#0x43    ; %01000011, text mode in 320x240pix window.
+        ld a, #7
+        ld (_vtink), a
+
+
         ld sp, #kstack_top
 
         ; Configure memory map

@@ -87,7 +87,7 @@ segment3.srcs = \
 	../usermem.c \
 	../font8x8.c \
 	zx128.s \
-	zxvideo.s \
+	ts_video.s \
 	devices.c \
 	devmdv.c \
 	devfd.c \
