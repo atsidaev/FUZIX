@@ -140,6 +140,8 @@ init2:
         out     (c),a
         dec     b          ; #_tsVConfig
         ld      a,#0x43    ; %01000011, text mode in 320x240pix window.
+        out     (C), a
+        
         ld a, #7
         ld (_vtink), a
 

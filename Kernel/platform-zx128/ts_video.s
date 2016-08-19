@@ -81,7 +81,9 @@ nofiddle:
         ld a,#7
         set 7,e
         ld (de),a
+        halt
         call put_rom
+        
         ei
         ret
 
