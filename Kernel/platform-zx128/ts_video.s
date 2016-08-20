@@ -23,25 +23,6 @@
 
         ; colors are ignored everywhere for now
 
-put_ram:
-	ld      bc,#0x21af ;_MemConfig
-        ld      a,#0xCE
-        out     (c),a
-        ld      b,#0x10 ; #_tsPage0
-        ld      a, #32 ; 32/33
-        out     (c), a
-        ret
-
-put_rom:
-        ld      bc,#0x21af ;_MemConfig
-        ld      a,#0xC0   
-        out     (c),a
-        ld      b,#0x10 ; #_tsPage0
-        ld      a, #0x03
-        out     (c),a
-        ret
-
-
 videopos: ; video page vith text mode must be mapped on cpu0
         ld a,(#_tsconfig_topline_offset)
         add a,e
@@ -66,10 +47,6 @@ _plot_char:
         ;       TODO: Map char 0x60 to a grave accent bitmap rather
         ;       than fudging with a quote
         ;
-        di
-;        push bc
-;	call put_ram
-;	pop bc
         ld b,#0            ; calculating offset in font table
         ld a, c
         cp #0x60
@@ -81,10 +58,6 @@ nofiddle:
         ld a,(#_tsconfig_screen_mix_color)
         set 7,e
         ld (de),a
-        halt
-        call put_rom
-        
-        ei
         ret
 
 
