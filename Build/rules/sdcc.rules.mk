@@ -209,18 +209,15 @@ $1.ldflags += -mwxuy \
 	     -l $(ARCH) \
 	     $$($1.objs)
 
-$$($1.result): $$($1.objs) \
-		$$($$($1.class).extradeps) $$($1.extradeps)
+$$($1.result): $$($1.objs) $$($1.extradeps) \
+		$$($$($1.class).extradeps) $$(sdldz80.result)
 	echo $$^
 	@echo KERNEL $$@
 	@mkdir -p $$(dir $$@)
 	#$$(hide) 
-#	$(SDCC) \
-#		$$(sdcc.cflags) $$($$($1.class).cflags) $$($1.cflags) \
-#		$$(sdcc.includes) $$($$($1.class).includes) $$($1.includes) \
-#		$$(sdcc.defines) $$($$($1.class).defines) $$($1.defines) \
-#		-c -o $$@ $$<
-	Kernel/tools/bankld/sdldz80 -n -k $$($1.libz80) $$(sdcc.ldflags) $$($1.ldflags) $$^
+		$(sdldz80.result) -n -k $$($1.libz80) \
+		$$(sdcc.ldflags) $$($1.ldflags) \
+		$$($1.objs) $$($1.extradeps) $$($$($1.class).extradeps)
 
 endif
 
