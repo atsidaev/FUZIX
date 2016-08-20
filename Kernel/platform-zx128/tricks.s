@@ -29,6 +29,12 @@
         .include "kernel.def"
         .include "../kernel.def"
 
+        .macro set_bank_a
+        or #0x18
+        ld bc, #0x7ffd
+        out (c), a
+        .endm
+
         .area _COMMONMEM
 
 ; Switchout switches out the current process, finds another that is READY,
@@ -61,9 +67,7 @@ _switchout:
 	; Stash the uarea back into process memory
 	ld hl, (U_DATA__U_PAGE)
 	ld a, l
-	ld bc, #0x7ffd
-	or #0x18
-	out (c), a
+	set_bank_a
 
 	; This includes the stacks, so be careful on restore
 	ld hl, #U_DATA
@@ -71,9 +75,7 @@ _switchout:
 	ld bc, #U_DATA__TOTALSIZE
 	ldir
 	ld a, (current_map)
-	or #0x18
-	ld bc, #0x7ffd
-	out (c), a
+	set_bank_a
 
         ; find another process to run (may select this one again)
 	push af
@@ -140,10 +142,8 @@ _switchin:
 not_swapped:
 	; We are in DI so we can poke these directly but must not invoke
 	; any code outside of common
-	or #0x18	; ROM
 	; Pages please !
-	ld bc, #0x7ffd
-	out (c), a
+	set_bank_a
 
 	;	Copy the stash from the user page back down into common
 	;	The alternate registers are free - we use them for the
@@ -163,10 +163,8 @@ not_swapped:
 	;
 
 	ld a, (current_map)
-	or #0x18
-	ld bc, #0x7ffd
-	out (c), a
-        
+	set_bank_a
+
 	;	Is our low data in 0x8000 already or do we need to flip
 	;	it with bank 6. _low_bank holds the page pointer of the
 	;	task owning the space
@@ -183,9 +181,8 @@ fliplow:
 	exx
 	ld hl, #0x8000
 	ld de, #0xc000
-	ld a, #6 + 0x18
-	ld bc, #0x7ffd
-	out (c), a
+	ld a, #6
+	set_bank_a
 flip2:
 	ld b, #0		; 256 bytes per outer loop (16K total)
 flip1:
@@ -202,9 +199,7 @@ flip1:
 	jr nz, flip1
 
 	ld a, (current_map)
-	or #0x18
-	ld bc, #0x7ffd
-	out (c), a
+	set_bank_a
 	exx
 	ld (_low_bank), de	; we own it now
 
@@ -257,9 +252,8 @@ switchinfail:
 
 ; Interrupts should be off when this is called
 _dup_low_page:
-	ld a, #0x06 + 0x18		;	low page alternate
-	ld bc, #0x7ffd
-	out (c), a
+	ld a, #0x06			;	low page alternate
+	set_bank_a
 
 	ld hl, #0x8000			; 	Fixed
 	ld de, #0xC000			;	Page we just mapped in
@@ -267,9 +261,7 @@ _dup_low_page:
 	ldir
 
 	ld a, (current_map)		; 	restore mapping
-	or #0x18			; ROM bits
-	ld bc, #0x7ffd
-	out (c), a
+	set_bank_a
 	ret
 
 fork_proc_ptr: .dw 0 ; (C type is struct p_tab *) -- address of child process p_tab entry
@@ -338,9 +330,8 @@ _dofork:
 	; FIXME: if we support small apps at C000-FBFF we need to tweak this
 	; Now copy the 0x8000-0xBFFF area directly
 
-	ld a, #0x06 + 0x18		;	low page alternate
-	ld bc, #0x7ffd
-	out (c), a
+	ld a, #0x06			;	low page alternate
+	set_bank_a
 
 	ld hl, #0x8000			; 	Fixed
 	ld de, #0xC000			;	Page we just mapped in
@@ -350,9 +341,7 @@ _dofork:
 	; Copy done
 
 	ld a, (U_DATA__U_PAGE)	; parent memory
-	or #0x18		; get the right ROMs
-	ld bc, #0x7ffd
-	out (c), a		; Switch context to parent in 0xC000+
+	set_bank_a		; Switch context to parent in 0xC000+
 
 	; We are going to copy the uarea into the parents uarea stash
 	; we must not touch the parent uarea after this point, any
@@ -365,10 +354,8 @@ _dofork:
 	;
 	; And back into the kernel
 	;
-	ld bc, #0x7ffd
 	ld a, (current_map)
-	or #0x18
-	out (c), a
+	set_bank_a
         ; now the copy operation is complete we can get rid of the stuff
         ; _switchin will be expecting from our copy of the stack.
 
@@ -407,14 +394,12 @@ _dofork:
 ;	we can use with a lazy copying model
 ;
 bankfork:
-	or #0x18		; ROM bits for the bank
 	ld b, #0x3C		; 40 x 256 minus 4 sets for the uarea stash/irqs
 	ld hl, #0xC000		; base of memory to fork (vectors included)
 bankfork_1:
 	push bc			; Save our counter and also child offset
 	push hl
-	ld bc, #0x7ffd
-	out (c), a		; switch to parent bank
+	set_bank_a		; switch to parent bank
 	ld de, #bouncebuffer
 	ld bc, #256
 	ldir			; copy into the bounce buffer
@@ -425,9 +410,7 @@ bankfork_1:
 	ld b, a			; save the parent bank id
 	ld a, c			; switch to the child
 	push bc			; save the bank pointers
-	ld bc, #0x7ffd
-	or #0x18		; ROM bits
-	out (c), a
+	set_bank_a
 	ld hl, #bouncebuffer
 	ld bc, #256
 	ldir			; copy into the child
