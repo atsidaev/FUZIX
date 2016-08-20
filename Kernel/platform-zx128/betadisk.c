@@ -37,12 +37,49 @@ static int betadisk_transfer(bool is_read, uint8_t rawflag)
 	if (!is_read)
 		return 1;
 	di();
+	
+	__asm
+		push bc
+		push af
+		ld      bc,#0x21af ;_MemConfig
+		ld      a,#0xC0   
+		out     (c),a
+		ld      b,#0x10 ; #_tsPage0
+		ld      a, #2
+		out     (c),a
+		
+		ld bc, #0x7ffd
+		ld a, (current_map)
+		.db #0xF6, #0x18 ; or 18
+		out (c), a
+		
+		ld      bc,#0x01af ; #_tsVPage
+		ld      a,#32
+		out     (c),a
+		pop af
+		pop bc
+	__endasm;
+	
 	betadisk_seek_internal(block>>4);
-	ei();
+	//ei();
 	block &= 15;
-	di();
+	//di();
 	betadisk_read_internal(block, udata.u_buf->bf_data);
 	betadisk_read_internal(block+1, udata.u_buf->bf_data+256);
+	
+	__asm
+		push bc
+		push af
+		ld      bc,#0x21af ;_MemConfig
+		ld      a,#0xCE
+		out     (c),a
+		ld      b,#0x10 ; #_tsPage0
+		ld      a,#32
+		out     (c),a
+		pop af
+		pop bc
+	__endasm;
+	
 	ei();
 	return 1;
 }
