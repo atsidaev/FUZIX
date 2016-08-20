@@ -32,10 +32,10 @@
 #define CONFIG_BANKS	1
 
 /* Vt definitions */
-#define VT_WIDTH	32
-#define VT_HEIGHT	24
-#define VT_RIGHT	31
-#define VT_BOTTOM	23
+#define VT_WIDTH	80
+#define VT_HEIGHT	64
+#define VT_RIGHT	79
+#define VT_BOTTOM	63
 
 #define TICKSPERSEC 50   /* Ticks per second */
 #define PROGBASE    0x8000  /* also data base */
