@@ -66,6 +66,8 @@
         .include "kernel.def"
         .include "../kernel.def"
 
+        .include "set_bank.inc"
+
 ; -----------------------------------------------------------------------------
 ; COMMON MEMORY BANK (below 0xC000)
 ; -----------------------------------------------------------------------------
@@ -201,9 +203,7 @@ switch_bank:
 	; the new bank and our out will just be a no-op
         ld (current_map), a
 	push bc
-        ld bc, #0x7ffd
-	or #0x18	   ; Spectrum 48K ROM, Screen in Bank 7
-        out (c), a
+	set_bank_a
 	pop bc
         ret
 

@@ -29,11 +29,7 @@
         .include "kernel.def"
         .include "../kernel.def"
 
-        .macro set_bank_a
-        or #0x18
-        ld bc, #0x7ffd
-        out (c), a
-        .endm
+        .include "set_bank.inc"
 
         .area _COMMONMEM
 
