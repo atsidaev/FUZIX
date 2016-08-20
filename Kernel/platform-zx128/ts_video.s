@@ -145,26 +145,24 @@ copy_line:
         ret
 
 _scroll_down:
-        ld bc,#8
+        ld a,(#_tsconfig_topline_offset)
+	dec a
 _scrldn:
-        ld hl,(#_tsconfig_topline_offset)
-        add hl,bc
-        ld  (#_tsconfig_topline_offset),hl
+	and a,#0x3f
+        ld (#_tsconfig_topline_offset),a
+	ld h,#0
+	ld l,a
+	add hl,hl
+	add hl,hl
+	add hl,hl
         ld bc,#0x04af ; GYOffsL
         out (c),l
         inc b
         out (c),h
-        ld a,l
-        srl h
-        rra 
-        rra
-        rra
-        and a,#0x3f
-        ld (#_tsconfig_topline_offset),a
         ret
-
 _scroll_up:
-        ld bc,#-8
+        ld a,(#_tsconfig_topline_offset)
+	inc a
         jr _scrldn
 
 _cursor_on:
@@ -211,17 +209,17 @@ loop_beep:
         ret
         
 _vtattr_notify: ; void vtattr_notify(void)
-        ld a,(#_vtink)
+        ld a,(#_vtpaper)
         and a,#0x0f     
-        ld (#_vtink),a
+        ld (#_vtpaper),a
         rrca
         rrca
         rrca
         rrca
         ld c,a
-        ld a,(#_vtpaper)
+        ld a,(#_vtink)
         and a,#0x0f
-        ld (#_vtpaper),a
+        ld (#_vtink),a
         or a,c
         ld (_tsconfig_screen_mix_color),a
         ret
