@@ -97,11 +97,6 @@ init1:
 init2:
 	di
 
-; map basic-48
-	ld bc, #0x7ffd
-	ld a, #0x18
-	out (c), a
-
         ld sp, #kstack_top
 
 ; making sure that we have Basic48 as ROM
@@ -111,6 +106,11 @@ init2:
         ld      b,#0x10     ; #_tsPage0 port (0x10af)
         ld      l,#0x03     ; ROM Basic-48
         out     (c),l
+
+; map basic-48
+	ld bc, #0x7ffd
+	ld a, #0x18
+	out (c), a
 
 ; setting Font in page 0x33
         ld      bc,#0x12af ; #_tsPage1 port (0x12af)
