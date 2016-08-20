@@ -67,9 +67,9 @@ _plot_char:
         ;       than fudging with a quote
         ;
         di
-        push bc
-	call put_ram
-	pop bc
+;        push bc
+;	call put_ram
+;	pop bc
         ld b,#0            ; calculating offset in font table
         ld a, c
         cp #0x60
@@ -78,7 +78,7 @@ _plot_char:
 nofiddle:
         ld (de),a       ; set char code to text videomemory.
 ; set char attributes:  
-        ld a,#7
+        ld a,(#_tsconfig_screen_mix_color)
         set 7,e
         ld (de),a
         halt
@@ -100,7 +100,7 @@ clear_next_line:
         push de
         ld d, #0            ; from the column #0
         ld b, d             ; b = 0
-        ld c, #80           ; clear 80 cols
+        ld c, #0x80         ; clear 80 cols
         push bc
         push de
         push af
@@ -130,6 +130,8 @@ _clear_across:
         pop hl              ; copy to hl
         ld b,#0
         ld  (hl),#" "
+        inc de
+        dec bc
 	push hl
 	push de
 	push bc

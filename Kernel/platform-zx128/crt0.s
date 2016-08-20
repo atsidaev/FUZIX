@@ -56,6 +56,9 @@
         .globl interrupt_handler
 
 	.globl _vtink
+	.globl _vtpaper
+	.globl _vtattr_notify
+	.globl _clear_lines
 
 	.include "kernel.def"
 
@@ -94,59 +97,73 @@ init1:
 init2:
 	di
 
-        ; making sure that we have Basic48 as ROM
-        ld      b, #0x21 ; 0x21af is the
-        ld      c, #0xaf ;   MemConfig port of TS-Conf
-        ld      l,#0xC0 ;  Enable ROM instead of RAM in #0000      
-        out     (c),l
-        ld      b,#0x10 ; #_tsPage0 port (0x10af)
-        ld      l,#0x03  ; ROM Basic-48
-        out     (c),l
-	
-	; map basic-48
+; map basic-48
 	ld bc, #0x7ffd
 	ld a, #0x18
 	out (c), a
 
-        ; setting Font in page 0x33
-        ld      b,#0x12 ; #_tsPage1 port (0x12af)
-        ld      c,#0xaf
-        ld      l, #33
-        out     (c), l
-        ld hl, #0x3C00  ; font data in ROM
-        ld de, #0x8000
-        ld bc, #256 * #4
-        ldir            ; copy font data to page 33
-        ld      b,#0x12 ; #_tsPage1 port (0x12af)
-        ld      c,#0xaf
-        ld      l, #2   ; put RAM2 back
-        out     (c), l
-        
-;        ld      bc,#0x10af
-;	ld l, #32
-;	out (c), l      ; set ram to 0000
-;        ld      b, #0x21 ; 0x21af is the
-;        ld      c, #0xaf ;   MemConfig port of TS-Conf
-;        ld      l,#0xCE ;  Enable RAM instead of ROM in #0000      
-;        out     (c),l
-;        ld      b,#0x10 ; #_tsPage1 port (0x11af)
-;        ld      c,#0xaf
-;        ld      l, #32
-;        out     (c), l
+        ld sp, #kstack_top
 
-        ; text mode
+; making sure that we have Basic48 as ROM
+        ld      bc, #0x21af ; 0x21af is the MemConfig port of TS-Conf
+        ld      l,#0xC0     ; Enable ROM instead of RAM in #0000      
+        out     (c),l
+        ld      b,#0x10     ; #_tsPage0 port (0x10af)
+        ld      l,#0x03     ; ROM Basic-48
+        out     (c),l
+
+; setting Font in page 0x33
+        ld      bc,#0x12af ; #_tsPage1 port (0x12af)
+        ld      l,#33
+        out     (c),l
+        ld 	hl,#0x3D00 ; font data in ROM,
+        ld 	de,#0x8100 ; skip data for first 20 char codes.
+        ld 	bc,#0x300
+        ldir		   ; copy font data to page 33
+
+        ld      bc,#0x12af  ; #_tsPage1 port (0x12af)
+        ld      l,#2	   ; put RAM2 back
+        out     (c),l
+        
+        ld      b, #0x21 ; 0x21af is the
+        ld      c, #0xaf ;   MemConfig port of TS-Conf
+        ld      l,#0xCE ;  Enable RAM instead of ROM in #0000      
+        out     (c),l
+        ld      b,#0x10 ; #_tsPage1 port (0x11af)
+        ld      c,#0xaf
+        ld      l, #32
+        out     (c), l
+
+; text mode:
+	; set vertical screen position to 0.
+	ld	bc,#0x04af ; GYOffsL
+	xor 	a,a
+	out	(c),a
+	inc	b	   ; GYOffsH
+	out	(c),a
+	; set up video memory to RAM page 0x20: 
         ld      bc,#0x01af ; #_tsVPage
         ld      a,#32
         out     (c),a
         dec     b          ; #_tsVConfig
         ld      a,#0x43    ; %01000011, text mode in 320x240pix window.
-        out     (C), a
-        
-        ld a, #7
-        ld (_vtink), a
-
-
-        ld sp, #kstack_top
+	out 	(c),a
+	
+        ld a,#7
+        ld (_vtink),a
+	ld a,#1
+        ld (_vtpaper),a
+        push af
+	call _vtattr_notify
+	pop af
+	; clear videomemory:
+	ld d,#64 ; lines
+	ld e,#00 ; from 0.
+	push de
+	push af
+	call _clear_lines
+	pop af
+	pop de
 
         ; Configure memory map
 	push af
