@@ -100,6 +100,35 @@ init2:
 
         ld sp, #kstack_top
 
+        call config_tsconf_video
+
+        ; Configure memory map
+	push af
+        call init_early
+	pop af
+
+        ; Hardware setup
+	push af
+        call init_hardware
+	pop af
+
+        ; Call the C main routine
+	push af
+        call _fuzix_main
+	pop af
+    
+        ; main shouldn't return, but if it does...
+        di
+stop:   halt
+        jr stop
+
+	.area _STUBS
+stubs:
+	.ds 768
+
+	; one-time configuration of TSConf video mode
+	.area _DISCARD
+config_tsconf_video:
 ; making sure that we have Basic48 as ROM
         ld      bc, #0x21af ; 0x21af is the MemConfig port of TS-Conf
         ld      l,#0xC0     ; Enable ROM instead of RAM in #0000      
@@ -114,16 +143,16 @@ init2:
 	out (c), a
 
 ; setting Font in page 0x33
-        ld      bc,#0x12af ; #_tsPage1 port (0x12af)
+        ld      bc,#0x11af ; #_tsPage1 port (0x11af)
         ld      l,#33
         out     (c),l
         ld 	hl,#0x3D00 ; font data in ROM,
-        ld 	de,#0x8100 ; skip data for first 20 char codes.
+        ld 	de,#0x4100 ; skip data for first 20 char codes.
         ld 	bc,#0x300
         ldir		   ; copy font data to page 33
 
-        ld      bc,#0x12af  ; #_tsPage1 port (0x12af)
-        ld      l,#2	   ; put RAM2 back
+        ld      bc,#0x11af  ; #_tsPage1 port (0x12af)
+        ld      l,#5	   ; put RAM5 back
         out     (c),l
         
         ld      b, #0x21 ; 0x21af is the
@@ -165,27 +194,4 @@ init2:
 	call _clear_lines
 	pop af
 	pop de
-
-        ; Configure memory map
-	push af
-        call init_early
-	pop af
-
-        ; Hardware setup
-	push af
-        call init_hardware
-	pop af
-
-        ; Call the C main routine
-	push af
-        call _fuzix_main
-	pop af
-    
-        ; main shouldn't return, but if it does...
-        di
-stop:   halt
-        jr stop
-
-	.area _STUBS
-stubs:
-	.ds 768
+	ret
