@@ -1,5 +1,4 @@
         .macro set_bank_a
-        or #0x18		; Spectrum 48K ROM, Screen in Bank 7
-        ld bc, #0x7ffd
-        out (c), a
+        ld      bc,#0x13af ; RAM3
+        out     (c),a        
         .endm

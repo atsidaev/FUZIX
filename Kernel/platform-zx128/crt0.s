@@ -61,6 +61,7 @@
 	.globl _clear_lines
 
 	.include "kernel.def"
+	.include "set_bank.inc"
 
         ; startup code
         .area _CODE
