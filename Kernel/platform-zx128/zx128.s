@@ -117,8 +117,29 @@ init_early:
 	; 128K image hasn't got the 0xFF space we use!
 	;
 	call setallvectors
-	ld a, #0x39
+	ld a, #0x7E
 	ld i, a
+	
+	; use 0x7F7F as jump address
+	ld a, #0x7F
+	ld hl, #0x7E00
+	ld d, h
+	ld e, l
+	ld (hl), a
+	inc de
+	ld bc, #0x100
+	ldir
+	
+	; hl = 0x7F7F
+	ld h, a
+	ld l, a
+	; lets put jp 0xfff4 there
+	ld (hl), #0xC3
+	inc hl
+	ld (hl), #0xF4
+	inc hl
+	ld (hl), #0xFF
+	
         im 2 ; set CPU interrupt mode
         ret
 
