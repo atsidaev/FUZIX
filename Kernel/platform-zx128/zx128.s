@@ -147,9 +147,9 @@ init_early:
 
 init_hardware:
         ; set system RAM size
-        ld hl, #128
+        ld hl, #512
         ld (_ramsize), hl
-        ld hl, #(128 - 64)        ; 64K for kernel/screen/etc
+        ld hl, #(512 - 64)        ; 64K for kernel/screen/etc
         ld (_procmem), hl
 
         ; screen initialization

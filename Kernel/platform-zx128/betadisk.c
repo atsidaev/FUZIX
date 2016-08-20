@@ -48,9 +48,18 @@ static int betadisk_transfer(bool is_read, uint8_t rawflag)
 		ld      a, #2
 		out     (c),a
 		
-		ld bc, #0x7ffd
 		ld a, (current_map)
-		.db #0xF6, #0x18 ; or 18
+		
+		ld b, a
+		rla
+		rla
+		rla        		; A3..A4 became 6..7 bits of A
+		.db #0xE6, #0xC0; 	and #0xC0
+		.db #0xB0 		;or b       ; A0..A2 put on their place at 0..2 bits
+		.db #0xF6, #0x18 	; or 18
+
+		
+		ld bc, #0x7ffd
 		out (c), a
 		
 		ld      bc,#0x01af ; #_tsVPage
@@ -61,9 +70,9 @@ static int betadisk_transfer(bool is_read, uint8_t rawflag)
 	__endasm;
 	
 	betadisk_seek_internal(block>>4);
-	//ei();
+	ei();
 	block &= 15;
-	//di();
+	di();
 	betadisk_read_internal(block, udata.u_buf->bf_data);
 	betadisk_read_internal(block+1, udata.u_buf->bf_data+256);
 	

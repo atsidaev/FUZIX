@@ -25,7 +25,7 @@
 /* Custom banking */
 
 /* We have two mappings from our 128K of memory */
-#define MAX_MAPS	2
+#define MAX_MAPS	3
 #define MAP_SIZE	0x8000U
 
 /* Banks as reported to user space */
@@ -33,9 +33,9 @@
 
 /* Vt definitions */
 #define VT_WIDTH	80
-#define VT_HEIGHT	64
+#define VT_HEIGHT	25
 #define VT_RIGHT	79
-#define VT_BOTTOM	63
+#define VT_BOTTOM	24
 
 #define TICKSPERSEC 50   /* Ticks per second */
 #define PROGBASE    0x8000  /* also data base */
