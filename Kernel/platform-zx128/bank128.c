@@ -14,8 +14,8 @@
 
 /* Kernel is 0, apps are 4 and 3 (top 16K). The live one also has 2 and
    the other has 6 */
-static unsigned char pfree[MAX_MAPS] = { 4, 3 };
-static unsigned char pfptr = 2;
+static unsigned char pfree[MAX_MAPS] = { 8, 4, 3 };
+static unsigned char pfptr = 3;
 
 extern ptptr low_bank;
 extern void dup_low_page(void);
@@ -52,7 +52,7 @@ int pagemap_realloc(uint16_t size)
 
 uint16_t pagemap_mem_used(void)
 {
-	return (2 - pfptr) * 32;
+	return (MAX_MAPS - pfptr) * (MAP_SIZE / 1024L);
 }
 
 /*
