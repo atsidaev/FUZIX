@@ -120,7 +120,7 @@ $(call build_segment, segment1, CODE, CONST)
 $(call build_segment, segment2, CODE2, CONST)
 $(call build_segment, segment3, CODE3, CONST)
 $(call build_segment, segment4, DISCARD, DISCARD)
-$(call build, kernel, kernel-ihx)
+$(call build, kernel, kernel-sna)
 
 SNA=$(kernel.result:.ihx=.sna)
 HOGS=$(kernel.result:.ihx=.hogs)
@@ -131,10 +131,10 @@ $(SNA): $(kernel.result) $(memhogs.result) $(bin2sna.result)
 	$(hide) $(memhogs.result) < $(kernel.result:.ihx=.map) | sort -nr > $(HOGS)
 	@head -5 $(HOGS)
 	
-	# building tools, which are executed from binprep
+	@# building tools, which are executed from binprep
 	$(hide) (cd $(TOP)/Kernel; make tools/bihx tools/binmunge tools/binman)
 
-	# binmunge works with fuzix.map filename only
+	@# binmunge works with fuzix.map filename only
 	-(cd $(OBJ)/$(PLATFORM)/Kernel; ln -s kernel-$(PLATFORM).map fuzix.map)
 
 	(cd $(OBJ)/$(PLATFORM)/Kernel; $(abspath $(TOP)/Kernel/tools/binprep $(kernel.result)))
