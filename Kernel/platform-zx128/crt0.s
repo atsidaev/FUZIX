@@ -130,17 +130,12 @@ stubs:
 	.area _DISCARD
 config_tsconf_video:
 ; making sure that we have Basic48 as ROM
-        ld      bc, #0x21af ; 0x21af is the MemConfig port of TS-Conf
-        ld      l,#0xC0     ; Enable ROM instead of RAM in #0000      
-        out     (c),l
-        ld      b,#0x10     ; #_tsPage0 port (0x10af)
-        ld      l,#0x03     ; ROM Basic-48
-        out     (c),l
-
-; map basic-48
-	ld bc, #0x7ffd
-	ld a, #0x18
-	out (c), a
+	ld      bc,#0x21af ; 0x21af is the MemConfig port of TS-Conf
+	ld      a,#0xC1    ; Enable ROM instead of RAM in #0000      
+	out     (c),a
+	ld      b,#0x10    ; #_tsPage0 port (0x10af)
+	ld      a, #3      ; ROM Basic-48
+	out     (c),a
 
 ; setting Font in page 0x33
         ld      bc,#0x11af ; #_tsPage1 port (0x11af)

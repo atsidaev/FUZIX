@@ -42,25 +42,11 @@ static int betadisk_transfer(bool is_read, uint8_t rawflag)
 		push bc
 		push af
 		ld      bc,#0x21af ;_MemConfig
-		ld      a,#0xC0   
+		ld      a,#0xC1   
 		out     (c),a
 		ld      b,#0x10 ; #_tsPage0
 		ld      a, #2
 		out     (c),a
-		
-		ld a, (current_map)
-		
-		ld b, a
-		rla
-		rla
-		rla        		; A3..A4 became 6..7 bits of A
-		.db #0xE6, #0xC0; 	and #0xC0
-		.db #0xB0 		;or b       ; A0..A2 put on their place at 0..2 bits
-		.db #0xF6, #0x18 	; or 18
-
-		
-		ld bc, #0x7ffd
-		out (c), a
 		
 		ld      bc,#0x01af ; #_tsVPage
 		ld      a,#32
