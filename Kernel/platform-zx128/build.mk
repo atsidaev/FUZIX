@@ -126,11 +126,17 @@ SNA=$(kernel.result:.ihx=.sna)
 HOGS=$(kernel.result:.ihx=.hogs)
 
 kernel.sna: $(SNA)
-$(SNA): $(kernel.result) $(bihx.result) $(memhogs.result)
+$(SNA): $(kernel.result) $(memhogs.result) $(bin2sna.result)
 	@echo MEMHOGS $(kernel.result:.ihx=.map):
-	$(hide) $(memhogs.result) < $(kernel.result:.ihx=.map) |sort -nr > $(HOGS)
+	$(hide) $(memhogs.result) < $(kernel.result:.ihx=.map) | sort -nr > $(HOGS)
 	@head -5 $(HOGS)
-	(cd $(OBJ)/$(PLATFORM)/Kernel; $(abspath $(bihx.result) $(kernel.result)))
+	
+	# building tools, which are executed from binprep
+	$(hide) (cd $(TOP)/Kernel; make tools/bihx tools/binmunge tools/binman)
+
+	# binmunge works with fuzix.map filename only
 	-(cd $(OBJ)/$(PLATFORM)/Kernel; ln -s kernel-$(PLATFORM).map fuzix.map)
+
 	(cd $(OBJ)/$(PLATFORM)/Kernel; $(abspath $(TOP)/Kernel/tools/binprep $(kernel.result)))
-	(cd $(OBJ)/$(PLATFORM)/Kernel; $(abspath $(TOP)/Kernel/tools/bin2sna $(kernel.result:.ihx=.sna)))
+	(cd $(OBJ)/$(PLATFORM)/Kernel; $(abspath $(TOP)/Kernel/tools/binprep $(kernel.result)))
+	(cd $(OBJ)/$(PLATFORM)/Kernel; $(abspath $(bin2sna.result)) kernel-$(PLATFORM).sna)
